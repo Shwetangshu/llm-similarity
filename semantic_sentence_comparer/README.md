@@ -104,7 +104,8 @@ python main.py --input_csv data/your_input_data.csv \
                --scorers openai gemini hf \
                --openai_model "gpt-3.5-turbo" \
                --gemini_model "gemini-pro" \
-               --hf_model "sentence-transformers/all-MiniLM-L6-v2"
+               --hf_model "sentence-transformers/all-MiniLM-L6-v2" \
+               --scorer_weights openai:0.5 gemini:0.3 hf:0.2
 ```
 
 **Explanation of important arguments:**
@@ -117,6 +118,11 @@ python main.py --input_csv data/your_input_data.csv \
 *   `--openai_model`: (Optional) Specify the OpenAI model to use if `openai` is in `--scorers`. Defaults to "gpt-3.5-turbo".
 *   `--gemini_model`: (Optional) Specify the Gemini model to use if `gemini` is in `--scorers`. Defaults to "gemini-pro".
 *   `--hf_model`: (Optional) Specify the Hugging Face sentence transformer model to use if `hf` is in `--scorers`. Defaults to "sentence-transformers/all-MiniLM-L6-v2".
+*   `--scorer_weights`: (Optional) A list of weights to assign to the scorers, in the format `scorer_name:weight`. For example: `--scorer_weights openai:0.7 gemini:0.3`.
+    *   The `scorer_name` must be one of the activated types: `openai`, `gemini`, or `hf`.
+    *   Weights must be positive numbers (e.g., 0.5, 1, 2.3).
+    *   If this argument is not provided, or if weights are not provided for all active scorers, a simple average of scores will be calculated for each sentence pair.
+    *   If `--scorer_weights` are provided, but an active scorer for a specific sentence pair is missing a weight or has a non-positive weight assigned, the script will log a warning and fall back to a simple average for that particular sentence pair. The weights do not need to sum to 1; the calculation will normalize them.
 
 Make sure to replace placeholder paths and column names with your actual data.
 
@@ -131,7 +137,7 @@ The script will generate an output CSV file (specified by `--output_csv`) contai
 *   `openai_gpt-3.5-turbo_score`: Score from the OpenAI model (model name included).
 *   `gemini_gemini-pro_score`: Score from the Gemini model (model name included).
 *   `hf_sentence-transformers_all-MiniLM-L6-v2_score`: Score from the Hugging Face model (model name included).
-*   `average_score`: The average of all collected scores for that sentence pair.
+*   `average_score`: The average of all collected scores for that sentence pair. If valid `--scorer_weights` were provided and successfully applied for all active scorers for a pair, this will be a weighted average. Otherwise, it will be a simple average. The script logs whether a weighted or simple average was computed for each sentence pair, providing transparency in how the `average_score` was derived.
 
 The exact score column names will depend on the models selected and their names (problematic characters in model names are replaced with underscores).
 
